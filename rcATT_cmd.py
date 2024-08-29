@@ -81,7 +81,7 @@ def predict(report_to_predict_file, output_file, title, date):
 		data = filetoread.read()
 		report_to_predict = prp.remove_u(data)
 	
-	# load postprocessingand min-max confidence score for both tactics and techniques predictions
+	# load postprocessing and min-max confidence score for both tactics and techniques predictions
 	parameters = joblib.load("classification_tools/data/configuration.joblib")
 	min_prob_tactics = parameters[2][0]	
 	max_prob_tactics = parameters[2][1]
@@ -110,6 +110,7 @@ def predict(report_to_predict_file, output_file, title, date):
 	ttps = []
 	to_print_tactics = []
 	to_print_techniques = []
+	'''
 	for ta in range(len(pred_tactics[0])):
 		if pred_tactics[0][ta] == 1:
 			ttps.append(clt.CODE_TACTICS[ta])
@@ -139,9 +140,39 @@ def predict(report_to_predict_file, output_file, title, date):
 		else:
 			print(Fore.CYAN + '' + tpte[1] + " : "+str(tpte[2])+"% confidence")
 	print(Style.RESET_ALL)
+ 	'''
+	for ta in range(len(pred_tactics[0])):
+		if pred_tactics[0][ta] == 1:
+			ttps.append(clt.CODE_TACTICS[ta])
+			to_print_tactics.append([1, clt.CODE_TACTICS[ta], predprob_tactics[0][ta]])
+	for te in range(len(pred_techniques[0])):
+		if pred_techniques[0][te] == 1:
+			ttps.append(clt.CODE_TECHNIQUES[te])
+			to_print_techniques.append([1, clt.CODE_TECHNIQUES[te], predprob_techniques[0][te]])	
+	to_print_tactics = sorted(to_print_tactics, key = itemgetter(2), reverse = True)
+	to_print_techniques = sorted(to_print_techniques, key = itemgetter(2), reverse = True)
+	print("Tactics :")
+	for tpta in to_print_tactics:
+		if tpta[0] == 1:
+			print(Fore.YELLOW + '' + tpta[1] + " : " + str(tpta[2]) + "% confidence")
+	print(Style.RESET_ALL)
+	print("Techniques :")
+	for tpte in to_print_techniques:
+		if tpte[0] == 1:
+			print(Fore.YELLOW + '' + tpte[1] + " : "+str(tpte[2])+"% confidence")
+	print(Style.RESET_ALL)
+
+	if output_file != '':
+		with open(output_file, "w+") as f:
+			for techniques in to_print_techniques: 
+				f.write(f"{techniques[1]}\n")
+	print("Results saved in " + output_file)
+	
+	'''
 	if output_file != '':
 		save_stix_file(report_to_predict, title, date, ttps, output_file)
 		print("Results saved in " + output_file)
+	'''
 
 def main(argv):
 	input_file = ''
